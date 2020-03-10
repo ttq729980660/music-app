@@ -26,6 +26,9 @@
           </ul>
         </div>
       </div>
+      <div class="loading-container" v-show="!discList.length">
+        <loading></loading>
+      </div>
     </scroll>
   </div>
 </template>
@@ -35,12 +38,14 @@ import Slider from 'base/slider/slider'
 import {getRecommend, getDiscList} from 'api/recommend'
 import {ERR_OK} from 'api/config'
 import Scroll from 'base/scroll/scroll'
+import Loading from 'base/loading/loading'
 
 export default {
   name: 'recommend',
   components: {
     Slider,
-    Scroll
+    Scroll,
+    Loading
   },
   data() {
     return {
@@ -56,7 +61,12 @@ export default {
     _getRecommend() {
       getRecommend().then((res) => {
         if (res.code === ERR_OK) {
-          this.recommends = res.data.slider
+          this.recommends = res.data.content.map((item) => {
+            return {
+              linkUrl: `https://y.qq.com/n/yqq/album/${item.jump_info.url}.html`,
+              picUrl: item.pic_info.url
+            }
+          })
         }
       })
     },
