@@ -9,8 +9,8 @@
 import ListView from 'base/listview/listview'
 import {getSingerList} from 'api/singer'
 import {ERR_OK} from 'api/config'
-import Singer from 'common/js/singer'
-// import {mapMutations} from 'vuex'
+import {createSinger} from 'common/js/singer'
+import {mapMutations} from 'vuex'
 
 const HOT_SINGER_LEN = 10
 const HOT_NAME = '热门'
@@ -37,7 +37,10 @@ export default {
       })
     },
     selectSinger(singer) {
-      console.log(singer.id)
+      this.$router.push({
+        path: `/singer/${singer.id}`
+      })
+      this.setSinger(singer)
     },
     _normalizeSinger(list) {
       let smap = {
@@ -48,10 +51,7 @@ export default {
       }
       list.forEach((item, index) => {
         if (index < HOT_SINGER_LEN) {
-          smap.hot.items.push(new Singer({
-            name: item.Fsinger_name,
-            id: item.Fsinger_mid
-          }))
+          smap.hot.items.push(createSinger(item))
         }
         const key = item.Findex
         if (!smap[key]) {
@@ -60,10 +60,7 @@ export default {
             items: []
           }
         }
-        smap[key].items.push(new Singer({
-          name: item.Fsinger_name,
-          id: item.Fsinger_mid
-        }))
+        smap[key].items.push(createSinger(item))
       })
       // 为了得到有序列表，把smap转化成数组
       let ret = []
@@ -80,7 +77,10 @@ export default {
         return a.title.charCodeAt(0) - b.title.charCodeAt(0)
       })
       return hot.concat(ret)
-    }
+    },
+    ...mapMutations({
+      setSinger: 'SET_SINGER'
+    })
   }
 }
 </script>
