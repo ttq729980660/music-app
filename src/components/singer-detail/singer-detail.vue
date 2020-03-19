@@ -53,7 +53,8 @@ export default {
       list.forEach((i) => {
         let {musicData} = i
         if (musicData.songid && musicData.albummid) {
-          ret.push(createSong(musicData))
+          const newSong = createSong(musicData)
+          ret.push(newSong)
         }
       })
       return ret

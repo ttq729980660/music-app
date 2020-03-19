@@ -21,7 +21,7 @@
             class="list"
             ref="list">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @select="selectItem"></song-list>
       </div>
       <div v-show="!songs.length" class="loading-container">
         <loading></loading>
@@ -35,6 +35,7 @@ import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
 import SongList from 'base/song-list/song-list'
 import {prefixStyle} from 'common/js/dom'
+import {mapActions, mapMutations} from 'vuex'
 
 const RESERVED_HEIGHT = 40
 const transform = prefixStyle('transform')
@@ -85,7 +86,27 @@ export default {
     },
     back() {
       this.$router.back()
-    }
+    },
+    selectItem(item, index) {
+      item.getSongAudioSrc().then((url) => {
+        if (item.url !== url) {
+          // eslint-disable-next-line no-useless-return
+          return
+        }
+        console.log(url)
+        this.setSongUrl(url)
+      })
+      this.selectPlay({
+        list: this.songs,
+        index
+      })
+    },
+    ...mapActions([
+      'selectPlay'
+    ]),
+    ...mapMutations({
+      setSongUrl: 'SET_CURRENT_SONG_URL'
+    })
   },
   watch: {
     scrollY(newVal) {

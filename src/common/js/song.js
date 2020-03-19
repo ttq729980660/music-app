@@ -1,3 +1,6 @@
+import {getSongUrl} from 'api/song'
+import {ERR_OK} from 'api/config'
+
 export default class Song {
   constructor ({id, mid, singer, name, album, duration, image, url}) {
     this.id = id
@@ -7,7 +10,23 @@ export default class Song {
     this.album = album
     this.duration = duration
     this.image = image
-    this.url = url
+  }
+  getSongAudioSrc() {
+    if (this.url) {
+      return Promise.resolve(this.url)
+    }
+    return new Promise((resolve, reject) => {
+      getSongUrl(this.mid).then((res) => {
+        if (res.code === ERR_OK) {
+          let purl = res.req_0.data.midurlinfo[0].purl
+          this.url = purl ? `http://isure.stream.qqmusic.qq.com/${purl}` : ''
+          resolve(this.url)
+        } else {
+          // eslint-disable-next-line prefer-promise-reject-errors
+          reject('no url')
+        }
+      })
+    })
   }
 }
 
@@ -19,8 +38,7 @@ export function createSong (musicData) {
     name: musicData.songname,
     album: musicData.albumname,
     duration: musicData.interval,
-    image: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
-    url: `ttp://ws.stream.qqmusic.qq.com/${musicData.songid}.m4a?fromtag=46`
+    image: `https://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`
   })
 }
 
