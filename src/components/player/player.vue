@@ -40,8 +40,8 @@
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-loop"></i>
+            <div class="icon i-left" @click="changeMode">
+              <i :class="iconMode"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
@@ -53,7 +53,7 @@
               <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon icon-favorite"></i>
+              <i class="icon icon-not-favorite"></i>
             </div>
           </div>
         </div>
@@ -69,7 +69,9 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-          <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
+          <progress-circle :radius="radius" :percent="percent">
+            <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
+          </progress-circle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
@@ -80,7 +82,8 @@
            :src="currentSongUrl"
            @canplay="ready"
            @error="error"
-           @timeupdate="updateTime">
+           @timeupdate="updateTime"
+           @ended="end">
     </audio>
   </div>
 </template>
@@ -92,6 +95,9 @@ import {mapGetters, mapMutations} from 'vuex'
 import {prefixStyle} from 'common/js/dom'
 import animations from 'create-keyframe-animation'
 import ProgressBar from 'base/progress-bar/progress-bar'
+import ProgressCircle from 'base/progress-circle/progress-circle'
+import {playMode} from 'common/js/config'
+import {shuffle} from 'common/js/util'
 
 const transform = prefixStyle('transform')
 // const transitionDuration = prefixStyle('transitionDuration')
@@ -100,11 +106,13 @@ export default {
   data() {
     return {
       songReady: false,
-      currentTime: 0
+      currentTime: 0,
+      radius: 32
     }
   },
   components: {
-    ProgressBar
+    ProgressBar,
+    ProgressCircle
   },
   computed: {
     cdCls() {
@@ -122,13 +130,18 @@ export default {
     percent() {
       return this.currentTime / this.currentSong.duration
     },
+    iconMode() {
+      return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+    },
     ...mapGetters([
       'currentIndex',
       'fullScreen',
       'playing',
       'playlist',
+      'sequenceList',
       'currentSong',
-      'currentSongUrl'
+      'currentSongUrl',
+      'mode'
     ])
   },
   methods: {
@@ -136,7 +149,9 @@ export default {
       setFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
       setCurrentIndex: 'SET_CURRENT_INDEX',
-      setCurrentSongUrl: 'SET_CURRENT_SONG_URL'
+      setCurrentSongUrl: 'SET_CURRENT_SONG_URL',
+      setPlayMode: 'SET_PLAY_MODE',
+      setPlaylist: 'SET_PLAYLIST'
     }),
     back() {
       this.setFullScreen(false)
@@ -239,6 +254,19 @@ export default {
     error() {
       this.songReady = true
     },
+    end() {
+      if (this.mode === playMode.loop) {
+        this.loop()
+      } else {
+        this.next()
+      }
+    },
+    loop() {
+      this.$refs.audio.currentTime = 0
+      this.$refs.audio.play(
+        this.setPlayingState(true)
+      )
+    },
     updateTime(e) {
       this.currentTime = e.target.currentTime
     },
@@ -262,6 +290,24 @@ export default {
       if (!this.playing) {
         this.togglePlaying()
       }
+    },
+    changeMode() {
+      const mode = (this.mode + 1) % 3
+      this.setPlayMode(mode)
+      let list = null
+      if (mode === playMode.random) {
+        list = shuffle(this.sequenceList)
+      } else {
+        list = this.sequenceList
+      }
+      this.resetCurrentIndex(list)
+      this.setPlaylist(list)
+    },
+    resetCurrentIndex(list) {
+      let index = list.findIndex((item) => {
+        return item.id === this.currentSong.id
+      })
+      this.setCurrentIndex(index)
     }
   },
   watch: {
