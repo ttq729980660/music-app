@@ -6,7 +6,7 @@
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="play-wrapper">
-        <div ref="playBtn" v-show="songs.length>0" class="play">
+        <div ref="playBtn" v-show="songs.length>0" class="play" @click="random">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -35,12 +35,14 @@ import Scroll from 'base/scroll/scroll'
 import Loading from 'base/loading/loading'
 import SongList from 'base/song-list/song-list'
 import {prefixStyle} from 'common/js/dom'
-import {mapActions, mapMutations} from 'vuex'
+import {mapGetters, mapActions} from 'vuex'
+import {playlistMixin} from 'common/js/mixin'
 
 const RESERVED_HEIGHT = 40
 const transform = prefixStyle('transform')
 const backdrop = prefixStyle('backdrop-filter')
 export default {
+  mixins: [playlistMixin],
   components: {
     Scroll,
     Loading,
@@ -69,7 +71,10 @@ export default {
   computed: {
     bgStyle() {
       return `background-image:url(${this.bgImage})`
-    }
+    },
+    ...mapGetters([
+      'currentSong'
+    ])
   },
   created () {
     this.probeType = 3
@@ -81,6 +86,11 @@ export default {
     this.$refs.list.$el.style.top = `${this.imageHeight}px`
   },
   methods: {
+    handlePlaylist(playlist) {
+      const bottom = playlist.length > 0 ? '60px' : ''
+      this.$refs.list.$el.style.bottom = bottom
+      this.$refs.list.refresh()
+    },
     scroll(pos) {
       this.scrollY = pos.y
     },
@@ -88,25 +98,20 @@ export default {
       this.$router.back()
     },
     selectItem(item, index) {
-      item.getSongAudioSrc().then((url) => {
-        if (item.url !== url) {
-          // eslint-disable-next-line no-useless-return
-          return
-        }
-        console.log(url)
-        this.setSongUrl(url)
-      })
       this.selectPlay({
         list: this.songs,
         index
       })
     },
+    random() {
+      this.randomPlay({
+        list: this.songs
+      })
+    },
     ...mapActions([
-      'selectPlay'
-    ]),
-    ...mapMutations({
-      setSongUrl: 'SET_CURRENT_SONG_URL'
-    })
+      'selectPlay',
+      'randomPlay'
+    ])
   },
   watch: {
     scrollY(newVal) {

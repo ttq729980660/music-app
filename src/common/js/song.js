@@ -1,7 +1,7 @@
-import {getSongUrl} from 'api/song'
+import {getSongUrl, getLyric} from 'api/song'
 import {ERR_OK} from 'api/config'
 
-export default class Song {
+export class Song {
   constructor ({id, mid, singer, name, album, duration, image, url}) {
     this.id = id
     this.mid = mid
@@ -28,6 +28,21 @@ export default class Song {
       })
     })
   }
+  getLyric() {
+    if (this.lyric) {
+      return Promise.resolve(this.lyric)
+    }
+    return new Promise((resolve, reject) => {
+      getLyric(this.mid).then((res) => {
+        if (res.code === ERR_OK) {
+          this.lyric = res.lyric
+          resolve(this.lyric)
+        } else {
+          reject(new Error('no lyric'))
+        }
+      })
+    })
+  }
 }
 
 export function createSong (musicData) {
@@ -42,7 +57,7 @@ export function createSong (musicData) {
   })
 }
 
-function filterSinger (singer) {
+export function filterSinger (singer) {
   let ret = []
   if (!singer) {
     return ''

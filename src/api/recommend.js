@@ -34,3 +34,13 @@ export function getDiscList () {
     return Promise.resolve(res.data)
   })
 }
+
+export function getDiscDetail (disstid) {
+  return axios.get(`${Url}/getSongListDetail`, {
+    params: {
+      disstid
+    }
+  }).then((res) => {
+    return Promise.resolve(res.data.response)
+  })
+}

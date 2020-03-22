@@ -23,6 +23,9 @@ const mutations = {
   },
   [types.SET_CURRENT_SONG_URL](state, url) {
     state.currentSongUrl = url
+  },
+  [types.SET_DISC_DETAIL](state, disc) {
+    state.disc = disc
   }
 }
 

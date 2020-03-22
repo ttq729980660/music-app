@@ -17,3 +17,5 @@ export const currentSong = (state) => {
 }
 
 export const currentSongUrl = state => state.currentSongUrl
+
+export const disc = state => state.disc
