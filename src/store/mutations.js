@@ -26,6 +26,9 @@ const mutations = {
   },
   [types.SET_DISC_DETAIL](state, disc) {
     state.disc = disc
+  },
+  [types.SET_TOP_LIST](state, topList) {
+    state.topList = topList
   }
 }
 
