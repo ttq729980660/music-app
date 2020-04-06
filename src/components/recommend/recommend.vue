@@ -88,9 +88,7 @@ export default {
     },
     _getDiscList() {
       getDiscList().then((res) => {
-        console.log(res.data)
         if (res.code === ERR_OK) {
-          console.log(res.data.list)
           this.discList = res.data.list
           this.$refs.scroll.refresh()
         }
